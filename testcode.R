@@ -30,3 +30,15 @@ gc<-rowSums(letterFrequencyInSlidingView(ecl, window, c("G", "C")))/window
 plot(gc, type='l')
 plot(1:length(gc),gc)
 lines(lowess(x = 1:length(gc), y= gc, f = 0.10), col = 12, lwd = 2)
+#Cumulative GC skew curve
+##First to create the vector y and x (x = length of sequence)
+y<- list()
+sq<-eclDna
+for (i in sq){
+  if (i == "G"){
+    y[i]=1
+  } else if (sq[i] =="C"){
+    y[i]=-1
+  } else
+    y[i]=0
+}
