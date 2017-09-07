@@ -33,12 +33,21 @@ lines(lowess(x = 1:length(gc), y= gc, f = 0.10), col = 12, lwd = 2)
 #Cumulative GC skew curve
 ##First to create the vector y and x (x = length of sequence)
 y<- list()
-sq<-eclDna
-for (i in sq){
-  if (i == "G"){
-    y[i]=1
-  } else if (sq[i] =="C"){
+sq<-as.character(eclDna)
+eclDNA[seq]
+ecl
+sq[[1]]
+splitsq<-strsplit(sq,"")[[1]]
+splitsq[2]=="A"
+#trying first on shorter seq
+for (i in 1:20){
+  if (splitsq[i] == "G"){
+  y[i]=1
+  } else if (splitsq[i] =="C"){
     y[i]=-1
   } else
     y[i]=0
 }
+y[1:20]
+y[[2]][1]
+y2[2]
