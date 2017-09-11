@@ -1,4 +1,5 @@
 library(seqinr)
+install.packages("micropan")
 source("http://bioconductor.org/biocLite.R")
 biocLite()
 library(BiocInstaller)
@@ -76,3 +77,22 @@ plot(windx,cumy, type='l')
 #length(x)
 #length(cumy)
 #length(splitsq)
+#Testing getting annotations through seqinr
+choosebank("genbank")
+#getting fasta file for E.coli NC_008563
+library(ape)
+eclDNAbin<-read.GenBank("NC_008563")
+attributes(eclDNAbin)
+eclFasta<-write.dna(eclDNAbin,file ="eclFasta.fasta", format = "fasta")
+eclSeq<-read.fasta("eclFasta.fasta")
+eclSeq
+eclAnnot<-getAnnot(eclSeq[[1]])
+eclAnnot
+?getAnnot
+methods(getAnnot)
+eclDNAseq<-readBStringSet("eclFasta.fasta", format='fasta')
+eclDNAseq<-gsub(" ", "", eclDNAseq, fixed = TRUE)
+eclDNAseq['seq']
+library(micropan)
+extdata.path <- file.path(path.package("micropan"),"extdata")
+prodigalPredict("eclFasta.fasta","eclPredGen.fasta")
