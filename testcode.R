@@ -94,5 +94,19 @@ eclDNAseq<-readBStringSet("eclFasta.fasta", format='fasta')
 eclDNAseq<-gsub(" ", "", eclDNAseq, fixed = TRUE)
 eclDNAseq['seq']
 library(micropan)
-extdata.path <- file.path(path.package("micropan"),"extdata")
+#extdata.path <- file.path(path.package("micropan"),"extdata")
 prodigalPredict("eclFasta.fasta","eclPredGen.fasta")
+#echo %PATH%
+system("prodigal -h")
+#From the results, we need to 1. read.fasta 
+#2. chage it into string and split it 
+#3. get the start + stop 
+#4. change start and stop into float
+eclGen<-read.fasta(file="eclPredGen.fasta")
+#attributes(eclGen[3])$Annot
+eclAn3<-strsplit(as.character(getAnnot(eclGen[3]))," ")
+eclAn3[[1]][3]
+eclAn3_start<-as.numeric(eclAn3[[1]][3])
+eclAn3_stop<-as.numeric(eclAn3[[1]][5])
+eclAn3_len<-(as.numeric(eclAn3[[1]][5])-as.numeric(eclAn3[[1]][3]))
+eclAn3_len
