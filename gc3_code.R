@@ -1,4 +1,5 @@
 library(seqinr)#something here
+#something more here to test git!
 library(ape)
 eclDNAbin<-read.GenBank("NC_008563")
 attributes(eclDNAbin)
