@@ -12,16 +12,40 @@ eclgenseq<-read.fasta('eclGenSeqs.fasta')
 eclannot<-sapply(eclgenseq,function(x) strsplit(getAnnot(x),'#'))
 #annotstr<-sapply(eclannot, function(x) strsplit(x,"#"))
 annotinfo<- lapply(lapply(eclannot,'[', 1:4),function(x) as.integer(x[2:4]))
-threes<-function(mydata){
-  #This function gets the third codons and their positions for the strand marked (+1) in prodigal
-  dna<-getSequence(mydata)
-  #print('getSeq works')
-  everythird<-dna[seq(1,length(dna),3)]
-  #append(outhird,everythird, after=length(outhird))
-  #outhird
-  as.vector(everythird)
+positcod<-list()
+negcod<-list()
+seqpos<-list()
+codonseqpos<-list()
+seqpos_neg<-list()
+codonseqpos_neg<-list()
+threes<-function(mydata, myannot){
+  #This function gets the third codons and their positions for the strand marked (+1)(or -1) in prodigal
+  #it returns the strand vectors
+  for (i in 1:length(mydata)){
+    if (names(mydata[i])==names(myannot[i])){
+      mydna<-getSequence(mydata[i])
+      #getting third nucleotides from sequence on the +1 strand
+      if (myannot[[i]][3]==1){
+        positcod<-c(positcod,mydna[seq(1,length(mydna),3)])
+        #Setting the positions of the nucleotides to another list
+        seqpos<-c(myannot[[i]][1]:myannot[[i]][2])
+        codonseqpos<-c(codonseqpos,seqpos[seq(1, length(seqpos),3)])
+      } else {
+        #Getting third nucleotides from sequence on the -1 strand
+        negcod<-c(negcod,mydna[seq(1,length(mydna),3)])
+        seqpos_neg<-c(myannot[[i]][1]:myannot[[i]][2])
+        codonseqpos_neg<-c(codonseqpos_neg,seqpos[seq(1, length(seqpos),3)])
+      }
+    } else {#If names do not match
+      print('Datasets do not match!')
+    }
+  }
+  return(positcod)
+  return(codonseqpos)
+  return(negcod)
+  return(codonseqpos_neg)
 }
-eclgc3s<-lapply(eclgenseq,FUN=threes)
+threes(eclgenseq[1],annotinfo[1])#does not work yet
 outgc3<-list()
 gc3<-function(mycodons){
   for (j in 1:length(mycodons)){
