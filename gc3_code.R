@@ -1,4 +1,4 @@
-library(seqinr)
+library(seqinr)#something here
 library(ape)
 eclDNAbin<-read.GenBank("NC_008563")
 attributes(eclDNAbin)
