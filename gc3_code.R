@@ -5,6 +5,7 @@ eclDNAbin<-read.GenBank("NC_008563")
 attributes(eclDNAbin)
 eclFasta<-write.dna(eclDNAbin,file ="eclFasta.fasta", format = "fasta")
 eclSeq<-read.fasta("eclFasta.fasta")
+#------------------------GCskew on genomic region-----------------------------------
 system ('prodigal -h')
 system('prodigal -i eclFasta.fasta -o eclGenCoord.fasta -d eclGenSeqs.fasta')
 #eclgenfasta2<-read.fasta('eclGenCoord.fasta')
@@ -23,75 +24,91 @@ threes<-function(mydata, myannot){
   #it returns the strand vectors
   for (i in 1:length(mydata)){
     if (names(mydata[i])==names(myannot[i])){
-      mydna<-getSequence(mydata[i])
+      mydna<-getSequence(mydata[[i]])
       #getting third nucleotides from sequence on the +1 strand
-      if (myannot[[i]][3]==1){
-        positcod<-c(positcod,mydna[seq(1,length(mydna),3)])
+      #if (myannot[[i]][3]==1){
+        #print('plus strand')
+        #positcod list creation and concatenation works, tried with two elements
+      positcod<-c(positcod,mydna[seq(3,length(mydna),3)])
         #Setting the positions of the nucleotides to another list
-        seqpos<-c(myannot[[i]][1]:myannot[[i]][2])
-        codonseqpos<-c(codonseqpos,seqpos[seq(1, length(seqpos),3)])
-      } else {
+      seqpos<-c(myannot[[i]][1]:myannot[[i]][2])
+      codonseqpos<-c(codonseqpos,seqpos[seq(3, length(seqpos),3)])
+      #} else {
+        #print('minus strand')
         #Getting third nucleotides from sequence on the -1 strand
-        negcod<-c(negcod,mydna[seq(1,length(mydna),3)])
-        seqpos_neg<-c(myannot[[i]][1]:myannot[[i]][2])
-        codonseqpos_neg<-c(codonseqpos_neg,seqpos[seq(1, length(seqpos),3)])
-      }
-    } else {#If names do not match
+        #negcod<-c(negcod,mydna[seq(3,length(mydna),3)])
+        #seqpos_neg<-c(myannot[[i]][1]:myannot[[i]][2])
+        #codonseqpos_neg<-c(codonseqpos_neg,seqpos_neg[seq(3, length(seqpos_neg),3)])
+        #print(unlist(codonseqpos_neg, recursive=TRUE)) #works!
+      #}
+    } else {  #If names do not match
       print('Datasets do not match!')
     }
   }
-  return(positcod)
-  return(codonseqpos)
-  return(negcod)
-  return(codonseqpos_neg)
+  positcod<-unlist(positcod,recursive=TRUE)
+  codonseqpos<-unlist(codonseqpos, recursive=TRUE)
+  #negcod<-unlist(negcod, recursive = TRUE)
+  #codonseqpos_neg<-unlist(codonseqpos_neg, recursive=TRUE)
+  #thirds<-list(plusncl=positcod,pluspos=codonseqpos,minusncl=negcod,minuspos=codonseqpos_neg)
+  thirds<-list(plusncl=positcod,pluspos=codonseqpos)
+  return(thirds)
 }
-threes(eclgenseq[1],annotinfo[1])#does not work yet
-outgc3<-list()
+thirds<-threes(eclgenseq,annotinfo)
 gc3<-function(mycodons){
-  for (j in 1:length(mycodons)){
-    for (i in 1:length(mycodons[[j]])){
-      if (mycodons[[j]][i] == "g"){
-        outgc3<-c(outgc3,1)
-      } else if (mycodons[[j]][i] =="c"){
-        outgc3<-c(outgc3,(-1))
+  for (i in 1:length(mycodons)){
+      if ((mycodons[i] == "g")||(mycodons[i]=='G')){
+        outgc3[i]<-1
+      } else if ((mycodons[i] =="c") ||(mycodons[i]=='C')){
+        outgc3[i]<-(-1)
       } else{
-        outgc3<-c(outgc3,0)
+        outgc3[i]<-0
       }
+    if (i %%1000==0){
+      cat('processing nucleotide', i, '\n')
     }
-  }
+    }
   return(outgc3)
 }
-mocCG<-list(c("g", "c", "a", "t", "g"), c("a","t","g","c","c"))
-shortgc3<-function(mydata){
-  #outgc3<-list()
-  for (i in 1:length(mydata[[1]])){
-    if (mydata[[1]][i] == "g"){
-       outgc3<-c(outgc3,1)}else {outgc3<-c(outgc3,0)}
-    #return(outgc3)
-  }
-  return(outgc3)
-}
-gclist12<-gc3(eclgc3s[1:2])
-plotgc<-function(mygc){
+gc3list<-gc3(thirds$plusncl)
+gc3list<-unlist(gc3list, recursive = TRUE)
+#Plotting gc3 skew with sliding window
+plotgc<-function(mygc, mypos){
   windowlen<-1000
   step<-100
   start<-1
   end<-start+windowlen
-  for (i in ceiling(length(mygc)/step)){
-    if (start==1){
-      gcskew<-c(gcskew,sum(mygc[start]:mygc[end]))
-      x[i]<-(end-start)+1/2
-      start<-end+1
+  gcskew<-list()
+  x<-list()
+  y<-list()
+  for (i in 1:(length(mygc)/step)){
+    if (end <= length(mygc)){
+      gcskew[i]<-sum(mygc[start:end])
+      x[i]<-mypos[median(c(start:end))]
+      start<-start+step-1
+      end<-start+windowlen
     } else {
-      if (end > length(mygc)){
-        gcskew<-c(gcskew,sum(sum(mygc[start]:mygc[length(mygc)]), sum(mygc[1]:mygc[(end-length(mygc))])))
-        x[i]<-(end-start)+1/2
-      } else {
-        gcskew<-c(gcskew,sum(mygc[start]):mygc[end])
-        x[i]<-(end-start)+1/2
-      }
+      gcskew[i]<-sum(sum(mygc[start]:mygc[length(mygc)]), sum(mygc[1]:mygc[(end-length(mygc))]))
+      x[i]<-mypos[median(c(start:end))]
     }
   }
-  y<-cumsum(gcskew)
-  x<-
+  #print(gcskew[1:10])
+  #y<-cumsum(unlist(gcskew, recursive = TRUE))
+  y<-unlist(gcskew,recursive = TRUE)
+  y2<-cumsum(y)
+  #print(y[length(y)/3:length(y)/3+10])
+  #print(y2[length(y2)/3:length(y2)/3+10])
+  x<-unlist(x, recursive = TRUE)
+  #print(tail(x))
+  if (length(y2)!=length(x)){
+    print('y and x not of the same length!')
+  } else{
+    plot(x,y, type='l', xlim=c(0,max(x)), ylim = c(min(y),max(y)))
+    par(new=T)
+    plot(x, y2, type='l', xlim =c(0, max(x)), ylim = c(min(y2),max(y2)), axes=F)
+    axis(side=4)
+    ter<-x[match(max(y2),y2)]
+    ori<-x[match(min(y2),y2)]
+    cat('The origin is at position', ori);cat(' and the terminus at position', ter )
+  }
 }
+plotgc(gc3list, thirds$pluspos)
