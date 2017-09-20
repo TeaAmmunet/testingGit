@@ -5,7 +5,7 @@ eclDNAbin<-read.GenBank("NC_008563")
 attributes(eclDNAbin)
 eclFasta<-write.dna(eclDNAbin,file ="eclFasta.fasta", format = "fasta")
 eclSeq<-read.fasta("eclFasta.fasta")
-nclseq<-sapply(eclSeq,function(x) getSequence(x))
+nclseq<-sapply(mySeq,function(x) getSequence(x))
 outgc<-list()
 gc<-function(myseq){
   for (i in 1:length(myseq)){

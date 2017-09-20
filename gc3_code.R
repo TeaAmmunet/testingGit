@@ -1,18 +1,35 @@
 library(seqinr)#something here
 #something more here to test git!
 library(ape)
-eclDNAbin<-read.GenBank("NC_008563")
-attributes(eclDNAbin)
-eclFasta<-write.dna(eclDNAbin,file ="eclFasta.fasta", format = "fasta")
-eclSeq<-read.fasta("eclFasta.fasta")
+#eclDNAbin<-read.GenBank("NC_008563")
+myDNAbin<-read.GenBank("CP011051.1")
+myDNAbin2<-read.GenBank("AP014658.1")
+myDNAbin3<-read.GenBank("NC_012967")
+myDNAbin4<-read.GenBank("NC_009719.1")
+myDNAbin5<-read.GenBank("NC_016639.1")
+#attributes(eclDNAbin)
+getfastafiles<-function(accession){
+  myDNAbin<-read.GenBank("accession")
+  myFasta<-write.dna(myDNAbin,file ="myFasta.fasta", format = "fasta")
+  mySeq<-read.fasta("myFasta.fasta")
+}
+getDNAbin<-function(mybinfile){
+  myFasta<-write.dna(mybinfile,file ="myFasta.fasta", format = "fasta")
+  mySeq<-read.fasta("myFasta.fasta")
+}
+#eclFasta<-write.dna(eclDNAbin,file ="eclFasta.fasta", format = "fasta")
+#eclSeq<-read.fasta("eclFasta.fasta")
 #------------------------GCskew on genomic region-----------------------------------
-system ('prodigal -h')
+#system ('prodigal -h')
 system('prodigal -i eclFasta.fasta -o eclGenCoord.fasta -d eclGenSeqs.fasta')
+system('prodigal -i myFasta.fasta -o myGenCoord.fasta -d myGenSeqs.fasta')
 #eclgenfasta2<-read.fasta('eclGenCoord.fasta')
-eclgenseq<-read.fasta('eclGenSeqs.fasta')
-eclannot<-sapply(eclgenseq,function(x) strsplit(getAnnot(x),'#'))
+#eclgenseq<-read.fasta('eclGenSeqs.fasta')
+mygenseq<-read.fasta('myGenSeqs.fasta')
+#eclannot<-sapply(eclgenseq,function(x) strsplit(getAnnot(x),'#'))
+myannot<-sapply(mygenseq,function(x) strsplit(getAnnot(x),'#'))
 #annotstr<-sapply(eclannot, function(x) strsplit(x,"#"))
-annotinfo<- lapply(lapply(eclannot,'[', 1:4),function(x) as.integer(x[2:4]))
+annotinfo<- lapply(lapply(myannot,'[', 1:4),function(x) as.integer(x[2:4]))
 positcod<-list()
 negcod<-list()
 seqpos<-list()
@@ -26,34 +43,34 @@ threes<-function(mydata, myannot){
     if (names(mydata[i])==names(myannot[i])){
       mydna<-getSequence(mydata[[i]])
       #getting third nucleotides from sequence on the +1 strand
-      #if (myannot[[i]][3]==1){
+      if (myannot[[i]][3]==1){
         #print('plus strand')
         #positcod list creation and concatenation works, tried with two elements
-      positcod<-c(positcod,mydna[seq(3,length(mydna),3)])
+        positcod<-c(positcod,mydna[seq(3,length(mydna),3)])
         #Setting the positions of the nucleotides to another list
-      seqpos<-c(myannot[[i]][1]:myannot[[i]][2])
-      codonseqpos<-c(codonseqpos,seqpos[seq(3, length(seqpos),3)])
-      #} else {
+        seqpos<-c(myannot[[i]][1]:myannot[[i]][2])
+        codonseqpos<-c(codonseqpos,seqpos[seq(3,length(seqpos),3)])
+      } else {
         #print('minus strand')
         #Getting third nucleotides from sequence on the -1 strand
-        #negcod<-c(negcod,mydna[seq(3,length(mydna),3)])
-        #seqpos_neg<-c(myannot[[i]][1]:myannot[[i]][2])
-        #codonseqpos_neg<-c(codonseqpos_neg,seqpos_neg[seq(3, length(seqpos_neg),3)])
+        negcod<-c(negcod,mydna[seq(3,length(mydna),3)])
+        seqpos_neg<-c(myannot[[i]][1]:myannot[[i]][2])
+        codonseqpos_neg<-c(codonseqpos_neg,seqpos_neg[seq(3,length(seqpos_neg),3)])
         #print(unlist(codonseqpos_neg, recursive=TRUE)) #works!
-      #}
+      }
     } else {  #If names do not match
       print('Datasets do not match!')
     }
   }
   positcod<-unlist(positcod,recursive=TRUE)
   codonseqpos<-unlist(codonseqpos, recursive=TRUE)
-  #negcod<-unlist(negcod, recursive = TRUE)
-  #codonseqpos_neg<-unlist(codonseqpos_neg, recursive=TRUE)
-  #thirds<-list(plusncl=positcod,pluspos=codonseqpos,minusncl=negcod,minuspos=codonseqpos_neg)
-  thirds<-list(plusncl=positcod,pluspos=codonseqpos)
+  negcod<-unlist(negcod, recursive = TRUE)
+  codonseqpos_neg<-unlist(codonseqpos_neg, recursive=TRUE)
+  thirds<-list(plusncl=positcod,pluspos=codonseqpos,minusncl=negcod,minuspos=codonseqpos_neg)
+  #thirds<-list(plusncl=positcod,pluspos=codonseqpos)
   return(thirds)
 }
-thirds<-threes(eclgenseq,annotinfo)
+thirds<-threes(mygenseq,annotinfo)
 gc3<-function(mycodons){
   for (i in 1:length(mycodons)){
       if ((mycodons[i] == "g")||(mycodons[i]=='G')){
@@ -98,7 +115,7 @@ plotgc<-function(mygc, mypos){
   #print(y[length(y)/3:length(y)/3+10])
   #print(y2[length(y2)/3:length(y2)/3+10])
   x<-unlist(x, recursive = TRUE)
-  #print(tail(x))
+  #print(length(x)/2)
   if (length(y2)!=length(x)){
     print('y and x not of the same length!')
   } else{
